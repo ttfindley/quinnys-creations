@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quinny's Creations 🎨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- ████████████████████████████████████████████████████
+       SETUP: Replace these placeholder values with YOUR
+       Firebase config. See SETUP.md for instructions.
+       ████████████████████████████████████████████████████ -->
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyBi8hpgFWkNP1ueqL1za24p4RQHPoI31js",
+      authDomain:        "quinnys-creations.firebaseapp.com",
+      projectId:         "quinnys-creations",
+      torageBucket:     "quinnys-creations.firebasestorage.app",
+      messagingSenderId: "829946968313",
+      appId:             "1:829946968313:web:d07dc24de9da4fbd084a28"
+    };
+  </script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --sky: #fef9f0;
+      --coral: #ef476f;
+      --mint: #06d6a0;
+      --blue: #118ab2;
+      --purple: #c77dff;
+      --dark: #2b2d42;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--sky);
+      font-family: 'Nunito', sans-serif;
+      color: var(--dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,209,102,.18) 0 80px, transparent 80px),
+        radial-gradient(circle at 90% 15%, rgba(199,125,255,.15) 0 60px, transparent 60px),
+        radial-gradient(circle at 50% 80%, rgba(6,214,160,.12) 0 90px, transparent 90px),
+        radial-gradient(circle at 80% 70%, rgba(239,71,111,.10) 0 70px, transparent 70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* SETUP BANNER */
+    #setupBanner {
+      position: relative; z-index: 20;
+      background: linear-gradient(135deg,#fff3cd,#ffe69c);
+      border-bottom: 3px solid #ffc107;
+      padding: 14px 24px;
+      text-align: center;
+      font-weight: 800; font-size: .9rem; color: #856404;
+    }
+
+    /* HEADER */
+    header { position: relative; z-index: 10; text-align: center; padding: 48px 24px 36px; }
+    .logo-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .crayon-icon { font-size: 2.4rem; animation: wobble 3s ease-in-out infinite; }
+    @keyframes wobble { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.6rem,7vw,4.8rem); line-height: 1;
+      background: linear-gradient(135deg, var(--coral) 0%, var(--purple) 50%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(2px 3px 0 rgba(0,0,0,.08));
+    }
+    .tagline { margin-top: 10px; font-size: 1.05rem; font-weight: 700; color: #8a8fa8; }
+
+    /* UPLOAD */
+    .upload-banner { position: relative; z-index: 10; max-width: 680px; margin: 0 auto 48px; padding: 0 20px; }
+    .upload-zone {
+      border: 3px dashed var(--purple); border-radius: 24px; padding: 32px 24px;
+      text-align: center; background: rgba(199,125,255,.07); cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .upload-zone:hover, .upload-zone.dragover { background: rgba(199,125,255,.14); transform: scale(1.01); }
+    .upload-zone input[type="file"] { display: none; }
+    .upload-emoji { font-size: 2.6rem; display: block; margin-bottom: 8px; }
+    .upload-zone p { font-size: 1rem; font-weight: 700; color: var(--purple); }
+    .upload-zone span { font-size: .85rem; font-weight: 600; color: #aaa; }
+    .upload-btn {
+      margin-top: 16px; display: inline-block; background: var(--purple); color: white;
+      font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 10px 28px;
+      border-radius: 50px; border: none; cursor: pointer;
+      box-shadow: 0 4px 0 #a855d4; transition: transform .12s, box-shadow .12s;
+    }
+    .upload-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #a855d4; }
+    .upload-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #a855d4; }
+
+    /* PROGRESS */
+    .progress-bar-wrap { display: none; margin-top: 14px; background: #e8e8f0; border-radius: 50px; height: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--coral)); border-radius: 50px; transition: width .2s; width: 0%; }
+    .progress-label { display: none; text-align: center; font-size: .8rem; font-weight: 800; color: var(--purple); margin-top: 6px; }
+
+    /* FILTERS */
+    .filters { position: relative; z-index: 10; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 0 20px 32px; }
+    .tag-btn {
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: .85rem;
+      padding: 7px 18px; border-radius: 50px; border: 2.5px solid transparent;
+      cursor: pointer; background: white; color: #666; transition: all .18s;
+    }
+    .tag-btn:hover { transform: translateY(-2px); }
+    .tag-btn.active { background: var(--coral); color: white; border-color: var(--coral); box-shadow: 0 4px 12px rgba(239,71,111,.3); }
+
+    /* GALLERY */
+    .gallery {
+      position: relative; z-index: 10;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 24px;
+      max-width: 1200px; margin: 0 auto; padding: 0 24px 80px;
+    }
+    .art-card {
+      background: #fff; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 6px 0 rgba(0,0,0,.07), 0 2px 16px rgba(0,0,0,.06);
+      cursor: pointer; transition: transform .22s, box-shadow .22s;
+      animation: popIn .45s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes popIn { from{opacity:0;transform:scale(.85) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .art-card:hover { transform: translateY(-6px) rotate(.6deg); box-shadow: 0 14px 0 rgba(0,0,0,.07), 0 6px 24px rgba(0,0,0,.1); }
+    .art-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: #f0f0f0; }
+    .card-body { padding: 14px 16px 16px; }
+    .card-title { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: var(--dark); margin-bottom: 4px; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; }
+    .card-date { font-size: .78rem; font-weight: 700; color: #aaa; }
+    .card-tag { font-size: .72rem; font-weight: 800; padding: 3px 10px; border-radius: 50px; }
+
+    /* SKELETON */
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 20px; aspect-ratio: 4/3; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* LIGHTBOX */
+    .lightbox { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(43,45,66,.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
+    .lightbox.open { display: flex; }
+    .lightbox-inner { background: white; border-radius: 28px; overflow: hidden; max-width: 780px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,.3); animation: lbIn .3s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes lbIn { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+    .lightbox-inner img { width: 100%; max-height: 65vh; object-fit: contain; background: #f7f7f7; display: block; }
+    .lightbox-info { padding: 20px 24px 24px; }
+    .lightbox-info h2 { font-family: 'Fredoka One', cursive; font-size: 1.7rem; color: var(--dark); margin-bottom: 6px; }
+    .lightbox-info p { font-size: .92rem; font-weight: 600; color: #999; }
+    .lb-close { position: absolute; top: 16px; right: 20px; font-size: 1.8rem; color: white; cursor: pointer; background: rgba(255,255,255,.15); border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+    .lb-close:hover { background: rgba(255,255,255,.3); }
+
+    /* EMPTY STATE */
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; }
+    .empty-state .big-emoji { font-size: 4rem; display: block; margin-bottom: 16px; }
+    .empty-state h3 { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #bbb; margin-bottom: 8px; }
+    .empty-state p { font-size: .95rem; font-weight: 600; color: #ccc; }
+
+    /* FOOTER */
+    footer { position: relative; z-index: 10; text-align: center; padding: 24px; font-size: .82rem; font-weight: 700; color: #ccc; }
+    footer span { color: var(--coral); }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 1100; background: rgba(43,45,66,.7); align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 28px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: lbIn .3s cubic-bezier(.34,1.56,.64,1); }
+    .modal h2 { font-family: 'Fredoka One', cursive; font-size: 1.6rem; margin-bottom: 20px; color: var(--dark); }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 800; font-size: .85rem; color: #666; margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 11px 16px; border: 2.5px solid #e8e8f0; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 700; color: var(--dark); outline: none; transition: border-color .15s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--purple); }
+    .preview-thumb { width: 100%; height: 160px; object-fit: contain; background: #f7f7f0; border-radius: 14px; margin-bottom: 16px; display: none; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .btn-save { flex: 1; background: var(--coral); color: white; font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 12px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 0 #c73059; transition: transform .12s, box-shadow .12s; }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #c73059; }
+    .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #c73059; }
+    .btn-save:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-cancel { background: #f2f2f5; color: #999; font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 12px 24px; border-radius: 14px; border: none; cursor: pointer; }
+
+    /* TAG COLORS */
+    .tag-painting { background: #fff0f3; color: var(--coral); }
+    .tag-drawing  { background: #f0faff; color: var(--blue); }
+    .tag-crafts   { background: #f0fff7; color: var(--mint); }
+    .tag-coloring { background: #fdf5ff; color: var(--purple); }
+    .tag-other    { background: #fffbec; color: #f0a500; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--dark); color: white; font-weight: 800; font-size: .9rem; padding: 12px 24px; border-radius: 50px; z-index: 2000; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div id="setupBanner">
+    ⚠️ Firebase not yet configured — artworks won't sync across devices.
+    Open <strong>SETUP.md</strong> for step-by-step instructions (free, ~5 min).
+  </div>
+
+  <header>
+    <div class="logo-row">
+      <span class="crayon-icon">🖍️</span>
+      <h1>Quinny's Creations</h1>
+      <span class="crayon-icon" style="animation-delay:.5s">🎨</span>
+    </div>
+    <p class="tagline">A gallery of wonderful artwork ✨</p>
+  </header>
+
+  <div class="upload-banner">
+    <div class="upload-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*" multiple />
+      <span class="upload-emoji">🖼️</span>
+      <p>Drop artwork here, or click to browse</p>
+      <span>JPG, PNG, GIF, WEBP — any image works!</span><br/>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">+ Add Artwork</button>
+    </div>
+    <div class="progress-bar-wrap" id="progressWrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="tag-btn active" data-filter="all">🌈 All</button>
+    <button class="tag-btn" data-filter="painting">🖌️ Painting</button>
+    <button class="tag-btn" data-filter="drawing">✏️ Drawing</button>
+    <button class="tag-btn" data-filter="coloring">🖍️ Coloring</button>
+    <button class="tag-btn" data-filter="crafts">✂️ Crafts</button>
+    <button class="tag-btn" data-filter="other">⭐ Other</button>
+  </div>
+
+  <div class="gallery" id="gallery">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+
+  <footer>Made with <span>♥</span> for Quinn</footer>
+
+  <!-- ADD MODAL -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <h2>🎨 Name this masterpiece!</h2>
+      <img id="previewThumb" class="preview-thumb" src="" alt="preview" />
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="artTitle" placeholder="e.g. Sunshine Rainbow" />
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="artTag">
+          <option value="painting">🖌️ Painting</option>
+          <option value="drawing">✏️ Drawing</option>
+          <option value="coloring">🖍️ Coloring</option>
+          <option value="crafts">✂️ Crafts</option>
+          <option value="other">⭐ Other</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="cancelBtn" onclick="closeModal()">Cancel</button>
+        <button class="btn-save"   id="saveBtn"   onclick="saveArtwork()">Add to Gallery!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+    <div class="lightbox-inner">
+      <img id="lbImage" src="" alt="" />
+      <div class="lightbox-info">
+        <h2 id="lbTitle"></h2>
+        <p id="lbMeta"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── FIREBASE INIT ──
+    let db, storage, isFirebaseReady = false;
+    try {
+      if (!FIREBASE_CONFIG.apiKey.includes('PASTE')) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.firestore();
+        storage = firebase.storage();
+        isFirebaseReady = true;
+        document.getElementById('setupBanner').style.display = 'none';
+      }
+    } catch(e) { console.warn('Firebase init failed:', e); }
+
+    // ── STATE ──
+    const tagLabels = { painting:'🖌️ Painting', drawing:'✏️ Drawing', coloring:'🖍️ Coloring', crafts:'✂️ Crafts', other:'⭐ Other' };
+    let artworks = [], pendingFiles = [], pendingIndex = 0, currentFilter = 'all', currentFileDataURL = '';
+
+    function formatDate(ts) {
+      const d = ts?.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    function showToast(msg, dur=2800) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    // ── LOAD ──
+    async function loadArtworks() {
+      if (!isFirebaseReady) {
+        artworks = JSON.parse(localStorage.getItem('quinny_art') || '[]');
+        render(); return;
+      }
+      try {
+        db.collection('artworks').orderBy('date','desc').onSnapshot(snap => {
+          artworks = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          render();
+        });
+      } catch(e) {
+        showToast('⚠️ Could not load artworks — check Firestore rules in SETUP.md');
+        render();
+      }
+    }
+
+    // ── RENDER ──
+    function render() {
+      const gallery = document.getElementById('gallery');
+      const filtered = currentFilter === 'all' ? artworks : artworks.filter(a => a.tag === currentFilter);
+      gallery.innerHTML = '';
+      if (!filtered.length) {
+        gallery.innerHTML = `<div class="empty-state"><span class="big-emoji">${currentFilter==='all'?'🎭':'🔍'}</span><h3>${currentFilter==='all'?'No artwork yet!':'Nothing here yet!'}</h3><p>${currentFilter==='all'?"Upload Quinn's first masterpiece above!":'Try uploading art and tagging it!'}</p></div>`;
+        return;
+      }
+      filtered.forEach((art, idx) => {
+        const card = document.createElement('div');
+        card.className = 'art-card';
+        card.style.animationDelay = `${idx * 0.05}s`;
+        card.innerHTML = `<img src="${art.url}" alt="${art.title}" loading="lazy" /><div class="card-body"><div class="card-title">${art.title}</div><div class="card-meta"><span class="card-date">${formatDate(art.date)}</span><span class="card-tag tag-${art.tag}">${tagLabels[art.tag]}</span></div></div>`;
+        card.onclick = () => openLightbox(art);
+        gallery.appendChild(card);
+      });
+    }
+
+    // ── FILTERS ──
+    document.getElementById('filters').addEventListener('click', e => {
+      if (!e.target.matches('.tag-btn')) return;
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      render();
+    });
+
+    // ── UPLOAD ──
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleFiles(files) {
+      pendingFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      if (!pendingFiles.length) return;
+      pendingIndex = 0; showNextModal();
+    }
+
+    function showNextModal() {
+      if (pendingIndex >= pendingFiles.length) { fileInput.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentFileDataURL = e.target.result;
+        document.getElementById('previewThumb').src = currentFileDataURL;
+        document.getElementById('previewThumb').style.display = 'block';
+        document.getElementById('artTitle').value = pendingFiles[pendingIndex].name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+        document.getElementById('artTag').value = 'painting';
+        document.getElementById('saveBtn').disabled = false;
+        document.getElementById('saveBtn').textContent = 'Add to Gallery!';
+        document.getElementById('cancelBtn').style.display = '';
+        document.getElementById('addModal').classList.add('open');
+        setTimeout(() => document.getElementById('artTitle').focus(), 100);
+      };
+      reader.readAsDataURL(pendingFiles[pendingIndex]);
+    }
+
+    function closeModal() {
+      document.getElementById('addModal').classList.remove('open');
+    }
+
+    async function saveArtwork() {
+      const title = document.getElementById('artTitle').value.trim() || 'Untitled';
+      const tag   = document.getElementById('artTag').value;
+      const file  = pendingFiles[pendingIndex];
+      const saveBtn = document.getElementById('saveBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      saveBtn.disabled = true;
+      cancelBtn.style.display = 'none';
+
+      if (!isFirebaseReady) {
+        // Fallback: localStorage
+        const local = JSON.parse(localStorage.getItem('quinny_art') || '[]');
+        local.unshift({ title, tag, url: currentFileDataURL, date: Date.now() });
+        localStorage.setItem('quinny_art', JSON.stringify(local));
+        artworks = local;
+        showToast('🎨 Saved locally! Add Firebase to sync across devices.');
+        render(); pendingIndex++; closeModal();
+        if (pendingIndex < pendingFiles.length) showNextModal();
+        return;
+      }
+
+      // Firebase upload
+      const progressWrap  = document.getElementById('progressWrap');
+      const progressFill  = document.getElementById('progressFill');
+      const progressLabel = document.getElementById('progressLabel');
+      progressWrap.style.display = progressLabel.style.display = 'block';
+
+      try {
+        saveBtn.textContent = 'Uploading…';
+        const filename = `artwork_${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+        const ref = storage.ref().child(`artworks/${filename}`);
+        const task = ref.put(file);
+
+        await new Promise((res, rej) => task.on('state_changed',
+          snap => {
+            const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+            progressFill.style.width = pct + '%';
+            progressLabel.textContent = `Uploading… ${pct}%`;
+          }, rej, res));
+
+        const url = await ref.getDownloadURL();
+        saveBtn.textContent = 'Saving…';
+        await db.collection('artworks').add({
+          title, tag, url, filename,
+          date: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showToast('🎉 Masterpiece uploaded!');
+      } catch(err) {
+        console.error(err);
+        showToast('❌ Upload failed — check Firebase rules in SETUP.md');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Add to Gallery!';
+        cancelBtn.style.display = '';
+        progressWrap.style.display = progressLabel.style.display = 'none';
+        return;
+      }
+
+      progressWrap.style.display = progressLabel.style.display = 'none';
+      progressFill.style.width = '0%';
+      pendingIndex++;
+      closeModal();
+      if (pendingIndex < pendingFiles.length) showNextModal();
+    }
+
+    document.getElementById('artTitle').addEventListener('keydown', e => { if (e.key==='Enter') saveArtwork(); });
+
+    // ── LIGHTBOX ──
+    function openLightbox(art) {
+      document.getElementById('lbImage').src = art.url;
+      document.getElementById('lbTitle').textContent = art.title;
+      document.getElementById('lbMeta').textContent  = `${tagLabels[art.tag]} · ${formatDate(art.date)}`;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+    document.getElementById('lightbox').addEventListener('click', e => { if (e.target===document.getElementById('lightbox')) closeLightbox(); });
+
+    loadArtworks();
+  </script>
+</body>
+</html>
