@@ -190,6 +190,32 @@
     /* TOAST */
     .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--dark); color: white; font-weight: 800; font-size: .9rem; padding: 12px 24px; border-radius: 50px; z-index: 2000; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* SLIDESHOW BUTTON */
+    .slideshow-btn { position: relative; z-index: 10; display: block; margin: 0 auto 40px; background: linear-gradient(135deg, #ff8c42, #ff6bba, #b347d9); color: white; font-family: 'Fredoka One', cursive; font-size: 1.2rem; padding: 14px 36px; border-radius: 50px; border: none; cursor: pointer; box-shadow: 0 6px 0 rgba(179,71,217,.4), 0 4px 20px rgba(255,107,186,.3); transition: transform .15s, box-shadow .15s; }
+    .slideshow-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 rgba(179,71,217,.4), 0 8px 28px rgba(255,107,186,.35); }
+    .slideshow-btn:active { transform: translateY(2px); }
+
+    /* SLIDESHOW OVERLAY */
+    .slideshow { display: none; position: fixed; inset: 0; z-index: 2000; background: #1a0a2e; flex-direction: column; align-items: center; justify-content: center; }
+    .slideshow.open { display: flex; }
+    .slideshow::before { content: '✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧ ✦ ✧'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 40px; padding: 40px; font-size: 1.2rem; color: rgba(255,255,255,.05); pointer-events: none; overflow: hidden; }
+    .ss-image-wrap { position: relative; width: min(85vw, 700px); aspect-ratio: 4/3; border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 6px rgba(255,107,186,.25), 0 30px 80px rgba(0,0,0,.7); }
+    .ss-image-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #0d0520; transition: opacity .5s ease; }
+    .ss-image-wrap img.fade-out { opacity: 0; }
+    .ss-info { margin-top: 24px; text-align: center; }
+    .ss-title { font-family: 'Fredoka One', cursive; font-size: clamp(1.6rem,5vw,2.8rem); background: linear-gradient(135deg,#ff8c42,#ff6bba,#b347d9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 4px; }
+    .ss-meta { font-size: .9rem; font-weight: 700; color: rgba(255,255,255,.4); }
+    .ss-controls { display: flex; gap: 16px; margin-top: 24px; align-items: center; }
+    .ss-btn { background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.15); color: white; font-size: 1.4rem; width: 52px; height: 52px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, transform .15s; }
+    .ss-btn:hover { background: rgba(255,255,255,.2); transform: scale(1.1); }
+    .ss-play-btn { background: linear-gradient(135deg,#ff6bba,#b347d9); border: none; color: white; font-size: 1.4rem; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(179,71,217,.5); transition: transform .15s; }
+    .ss-play-btn:hover { transform: scale(1.1); }
+    .ss-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.15); color: white; font-size: 1.3rem; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+    .ss-close:hover { background: rgba(255,255,255,.2); }
+    .ss-dots { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; justify-content: center; max-width: 320px; }
+    .ss-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.2); transition: background .3s, transform .3s; cursor: pointer; }
+    .ss-dot.active { background: #ff6bba; transform: scale(1.5); }
   </style>
 </head>
 <body>
@@ -219,6 +245,8 @@
     <div class="progress-bar-wrap" id="progressWrap"><div class="progress-bar-fill" id="progressFill"></div></div>
     <div class="progress-label" id="progressLabel"></div>
   </div>
+
+  <button class="slideshow-btn" onclick="openSlideshow()">✨ Slideshow Mode</button>
 
   <div class="filters" id="filters">
     <button class="tag-btn active" data-filter="all">🌈 All</button>
@@ -259,6 +287,24 @@
         <button class="btn-save"   id="saveBtn"   onclick="saveArtwork()">Add to Gallery!</button>
       </div>
     </div>
+  </div>
+
+  <!-- SLIDESHOW -->
+  <div class="slideshow" id="slideshow">
+    <button class="ss-close" onclick="closeSlideshow()">✕</button>
+    <div class="ss-image-wrap">
+      <img id="ssImage" src="" alt="" />
+    </div>
+    <div class="ss-info">
+      <div class="ss-title" id="ssTitle"></div>
+      <div class="ss-meta" id="ssMeta"></div>
+    </div>
+    <div class="ss-controls">
+      <button class="ss-btn" onclick="ssPrev()">&#8592;</button>
+      <button class="ss-play-btn" id="ssPlayBtn" onclick="ssTogglePlay()">&#9646;&#9646;</button>
+      <button class="ss-btn" onclick="ssNext()">&#8594;</button>
+    </div>
+    <div class="ss-dots" id="ssDots"></div>
   </div>
 
   <!-- LIGHTBOX -->
@@ -460,6 +506,84 @@
     }
     function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
     document.getElementById('lightbox').addEventListener('click', e => { if (e.target===document.getElementById('lightbox')) closeLightbox(); });
+
+    loadArtworks();
+
+    // ── SLIDESHOW ──
+    let ssIndex = 0, ssPlaying = true, ssTimer = null, ssItems = [];
+
+    function openSlideshow() {
+      ssItems = currentFilter === 'all' ? [...artworks] : artworks.filter(a => a.tag === currentFilter);
+      if (!ssItems.length) { showToast('No artwork to show!'); return; }
+      ssIndex = 0;
+      buildDots();
+      showSlide(ssIndex);
+      document.getElementById('slideshow').classList.add('open');
+      ssPlaying = true;
+      document.getElementById('ssPlayBtn').innerHTML = '&#9646;&#9646;';
+      ssStartTimer();
+    }
+
+    function closeSlideshow() {
+      document.getElementById('slideshow').classList.remove('open');
+      clearTimeout(ssTimer);
+    }
+
+    function buildDots() {
+      const dots = document.getElementById('ssDots');
+      dots.innerHTML = '';
+      ssItems.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.className = 'ss-dot' + (i === 0 ? ' active' : '');
+        d.onclick = () => { ssIndex = i; showSlide(i); };
+        dots.appendChild(d);
+      });
+    }
+
+    function showSlide(idx) {
+      const art = ssItems[idx];
+      const img = document.getElementById('ssImage');
+      img.classList.add('fade-out');
+      setTimeout(() => {
+        img.src = art.url;
+        img.classList.remove('fade-out');
+      }, 300);
+      document.getElementById('ssTitle').textContent = art.title;
+      document.getElementById('ssMeta').textContent = tagLabels[art.tag] + ' · ' + formatDate(art.date);
+      document.querySelectorAll('.ss-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+
+    function ssNext() {
+      ssIndex = (ssIndex + 1) % ssItems.length;
+      showSlide(ssIndex);
+      if (ssPlaying) ssStartTimer();
+    }
+
+    function ssPrev() {
+      ssIndex = (ssIndex - 1 + ssItems.length) % ssItems.length;
+      showSlide(ssIndex);
+      if (ssPlaying) ssStartTimer();
+    }
+
+    function ssTogglePlay() {
+      ssPlaying = !ssPlaying;
+      document.getElementById('ssPlayBtn').innerHTML = ssPlaying ? '&#9646;&#9646;' : '&#9654;';
+      if (ssPlaying) ssStartTimer(); else clearTimeout(ssTimer);
+    }
+
+    function ssStartTimer() {
+      clearTimeout(ssTimer);
+      ssTimer = setTimeout(ssNext, 4000);
+    }
+
+    // Keyboard nav for slideshow
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('slideshow').classList.contains('open')) return;
+      if (e.key === 'ArrowRight') ssNext();
+      if (e.key === 'ArrowLeft') ssPrev();
+      if (e.key === 'Escape') closeSlideshow();
+      if (e.key === ' ') { e.preventDefault(); ssTogglePlay(); }
+    });
 
     loadArtworks();
   </script>
