@@ -28,11 +28,11 @@
 
   <style>
     :root {
-      --sky: #fef9f0;
-      --coral: #ef476f;
-      --mint: #06d6a0;
-      --blue: #118ab2;
-      --purple: #c77dff;
+      --sky: #fff5f0;
+      --coral: #ff6bba;
+      --mint: #ff8c42;
+      --blue: #cc5de8;
+      --purple: #b347d9;
       --dark: #2b2d42;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,10 +48,10 @@
       position: fixed;
       inset: 0;
       background-image:
-        radial-gradient(circle at 10% 20%, rgba(255,209,102,.18) 0 80px, transparent 80px),
-        radial-gradient(circle at 90% 15%, rgba(199,125,255,.15) 0 60px, transparent 60px),
-        radial-gradient(circle at 50% 80%, rgba(6,214,160,.12) 0 90px, transparent 90px),
-        radial-gradient(circle at 80% 70%, rgba(239,71,111,.10) 0 70px, transparent 70px);
+        radial-gradient(circle at 10% 20%, rgba(255,140,66,.18) 0 80px, transparent 80px),
+        radial-gradient(circle at 90% 15%, rgba(179,71,217,.15) 0 60px, transparent 60px),
+        radial-gradient(circle at 50% 80%, rgba(255,107,186,.14) 0 90px, transparent 90px),
+        radial-gradient(circle at 80% 70%, rgba(255,140,66,.10) 0 70px, transparent 70px);
       pointer-events: none;
       z-index: 0;
     }
@@ -74,7 +74,7 @@
     h1 {
       font-family: 'Fredoka One', cursive;
       font-size: clamp(2.6rem,7vw,4.8rem); line-height: 1;
-      background: linear-gradient(135deg, var(--coral) 0%, var(--purple) 50%, var(--blue) 100%);
+      background: linear-gradient(135deg, #ff8c42 0%, #ff6bba 50%, #b347d9 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       filter: drop-shadow(2px 3px 0 rgba(0,0,0,.08));
     }
@@ -174,18 +174,18 @@
     .form-group input:focus, .form-group select:focus { border-color: var(--purple); }
     .preview-thumb { width: 100%; height: 160px; object-fit: contain; background: #f7f7f0; border-radius: 14px; margin-bottom: 16px; display: none; }
     .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
-    .btn-save { flex: 1; background: var(--coral); color: white; font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 12px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 0 #c73059; transition: transform .12s, box-shadow .12s; }
-    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #c73059; }
-    .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #c73059; }
+    .btn-save { flex: 1; background: #ff6bba; color: white; font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 12px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 0 #d94d9a; transition: transform .12s, box-shadow .12s; }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #d94d9a; }
+    .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #d94d9a; }
     .btn-save:disabled { opacity: .5; cursor: not-allowed; transform: none; }
     .btn-cancel { background: #f2f2f5; color: #999; font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 12px 24px; border-radius: 14px; border: none; cursor: pointer; }
 
     /* TAG COLORS */
-    .tag-painting { background: #fff0f3; color: var(--coral); }
-    .tag-drawing  { background: #f0faff; color: var(--blue); }
-    .tag-crafts   { background: #f0fff7; color: var(--mint); }
-    .tag-coloring { background: #fdf5ff; color: var(--purple); }
-    .tag-other    { background: #fffbec; color: #f0a500; }
+    .tag-painting { background: #fff0f8; color: #ff6bba; }
+    .tag-drawing  { background: #fdf0ff; color: #b347d9; }
+    .tag-crafts   { background: #fff4ee; color: #ff8c42; }
+    .tag-coloring { background: #fde8ff; color: #cc5de8; }
+    .tag-other    { background: #fff0f8; color: #ff6bba; }
 
     /* TOAST */
     .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--dark); color: white; font-weight: 800; font-size: .9rem; padding: 12px 24px; border-radius: 50px; z-index: 2000; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap; }
